@@ -63,7 +63,7 @@ public class BleBlueToothService extends Service {
             }, SCAN_PERIOD);
             isScanning = true;
 
-            if (Build.VERSION.SDK_INT > 21) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
                 bluetoothLeScanner.startScan(scanCallback);//开始搜索
             } else {
                 bluetoothAdapter.startLeScan(leScanCallback); //开始搜索

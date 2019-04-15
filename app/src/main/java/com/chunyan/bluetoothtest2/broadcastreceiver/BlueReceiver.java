@@ -44,20 +44,7 @@ public class BlueReceiver extends BroadcastReceiver {
                 callBack.onScanning(device);
                 break;
             case BluetoothDevice.ACTION_PAIRING_REQUEST:
-                try {
                     callBack.onBondRequest();
-                    //1.确认配对
-                    Method setPairingConfirmation = device.getClass().getDeclaredMethod("setPairingConfirmation", boolean.class);
-                    setPairingConfirmation.invoke(device, true);
-                    //2.终止有序广播
-                    abortBroadcast();//如果没有将广播终止，则会出现一个一闪而过的配对框。
-                    //3.调用setPin方法进行配对...
-                    Method removeBondMethod = device.getClass().getDeclaredMethod("setPin", new Class[]{byte[].class});
-                    Boolean returnValue = (Boolean) removeBondMethod.invoke(device, new Object[]{pin.getBytes()});
-                } catch (Exception e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
                 break;
             case BluetoothDevice.ACTION_BOND_STATE_CHANGED:
                 switch (device.getBondState()) {

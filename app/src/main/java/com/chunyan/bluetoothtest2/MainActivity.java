@@ -8,10 +8,12 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -80,9 +82,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         textView3 = findViewById(R.id.textView3);
         editTxt = findViewById(R.id.editTxt);
         findViewById(R.id.button5).setOnClickListener(this);
-        findViewById(R.id.button6).setOnClickListener(this);
         findViewById(R.id.button11).setOnClickListener(this);
-        findViewById(R.id.button12).setOnClickListener(this);
     }
 
     @Override
@@ -92,15 +92,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 text = editTxt.getText().toString();
                 classicaBTBind.sendData(text.getBytes());
                 break;
-            case R.id.button6://经典--读数据
-                registReadListener();
-                break;
             case R.id.button11://低功耗--发送数据
                 bleBTBind.sendData();
                 break;
-            case R.id.button12://低功耗--读数据
-                bleBTBind.readData();
-                break;
+
         }
     }
 
@@ -243,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         openBlueSync(MainActivity.this, openBTCode);
                     } else {
                         //========================开始执行工作=============================
-                        bleBTBind.scanLeDevice(leScanCallback, scanCallback);
+                      //  bleBTBind.scanLeDevice(leScanCallback, scanCallback);
                     }
                 } else {
                     Log.e("mcy", "此设备不支持蓝牙");
@@ -348,7 +343,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         openBlueSync(MainActivity.this, openBTCode);
                     } else {
                         //========================开始执行工作=============================
-                        //classicaBTBind.scanBlueTooth();//扫描蓝牙
+                        classicaBTBind.scanBlueTooth();//扫描蓝牙
+                        registReadListener();//注册读数据事件
                     }
                 } else {
                     Toast.makeText(MainActivity.this, "此设备不支持蓝牙", Toast.LENGTH_SHORT).show();
@@ -365,7 +361,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         };
         bindService(new Intent(this, ClassicsBlueToothService.class), classicaConnection, BIND_AUTO_CREATE);
     }
-
 
     //经典蓝牙注册读数据事件
     private void registReadListener() {
@@ -452,8 +447,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (grantResults.length > 0) {
                     for (int i = 0; i < grantResults.length; i++) {
                         if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                            initClassica();
-                            initBle();
+                            initClassica();//初始化经典蓝牙
                         }
                     }
                 }

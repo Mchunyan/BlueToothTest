@@ -72,12 +72,12 @@
                 android:id="@+id/editTxt"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
-                android:hint="请输入数据" />
+                android:hint="请输入发送数据" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="读取的数据："
+                android:text="接收的数据："
                 android:textColor="#000000"
                 android:textSize="18dp" />
 
@@ -116,13 +116,7 @@
                         android:id="@+id/button5"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="写数据" />
-
-                    <Button
-                        android:id="@+id/button6"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="读数据" />
+                        android:text="发送" />
 
                 </LinearLayout>
 
@@ -145,13 +139,8 @@
                         android:id="@+id/button11"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="写数据" />
+                        android:text="发送" />
 
-                    <Button
-                        android:id="@+id/button12"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="读数据" />
                 </LinearLayout>
             </LinearLayout>
 

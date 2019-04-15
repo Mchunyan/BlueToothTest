@@ -23,15 +23,21 @@ public class ClientThread extends Thread {
         this.bluetoothSocket = bluetoothSocket;
     }
 
+    /**
+     * 写数据
+     *
+     * @param data
+     */
 
     public void write(byte[] data) {
         Message message = new Message();
         message.obj = data;
         handler.sendMessage(message);
-
-
     }
 
+    /**
+     * 关闭各种连接连接
+     */
     public void closeSocket() {
         try {
             outputStream.close();
@@ -46,7 +52,7 @@ public class ClientThread extends Thread {
     public void run() {
         try {
             bluetoothSocket.connect();
-            outputStream = bluetoothSocket.getOutputStream();
+            outputStream = bluetoothSocket.getOutputStream();//读取需要发送的的数据
             Looper.prepare();
             handler = new Handler() {
                 @Override

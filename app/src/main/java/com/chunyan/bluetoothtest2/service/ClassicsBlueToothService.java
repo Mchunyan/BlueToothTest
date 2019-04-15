@@ -147,7 +147,7 @@ public class ClassicsBlueToothService extends Service {
         }
 
         /**
-         * @param uuid   用户指定的 uuid
+         * @param uuid   用户指定的 uuid ，可随意写，只要格式对就行，客户端和服务端保持一致即可。
          * @param device 连接的设备
          */
 

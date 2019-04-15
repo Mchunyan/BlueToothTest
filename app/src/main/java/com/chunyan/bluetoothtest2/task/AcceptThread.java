@@ -29,6 +29,10 @@ public class AcceptThread extends Thread {
             callBack.onConnectFail(e.getMessage());
         }
     }
+
+    /**
+     * 关闭各种流和通信的socket
+     */
     public void closeSocket() {
         try {
             inputStream.close();
@@ -45,7 +49,7 @@ public class AcceptThread extends Thread {
         try {
             final BluetoothSocket bluetoothSocket = serverSocket.accept();
             callBack.onConnectSuccess();
-            inputStream = bluetoothSocket.getInputStream();
+            inputStream = bluetoothSocket.getInputStream();//获取服务端发来的消息
             bufferedInputStream = new BufferedInputStream(inputStream);
             while (true) {
                 int available =0;

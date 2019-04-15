@@ -24,7 +24,12 @@ public class LocalUtils {
     //打开gps定位
     public static final int open_GPSCode = 102;
     static String[] permissionsIndex;
-
+    /**
+     * 此方法用来检查gps和定位权限，先检查gps是否打开，在检查是否有定位权限
+     * @param activity 上下文对象
+     * @param permissions 权限的名称
+     * @return
+     */
     public static boolean checkLocalPermissiion(Activity activity, String[] permissions) {
         permissionsIndex = permissions;
         if (checkGPSIsOpen(activity)) {
@@ -39,7 +44,6 @@ public class LocalUtils {
     /**
      * 检查GPS是否打开
      *
-     * @return
      */
     public static boolean checkGPSIsOpen(Activity activity) {
         LocationManager locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
@@ -50,7 +54,7 @@ public class LocalUtils {
 
 
     /**
-     * 检查权限
+     * 检查权限并申请权限
      */
     public static boolean checkPermissions(final Activity activity) {
         List<String> permissionDeniedList = new ArrayList<>();

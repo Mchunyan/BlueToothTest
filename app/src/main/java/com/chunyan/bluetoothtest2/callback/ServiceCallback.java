@@ -10,7 +10,9 @@ public interface ServiceCallback {
     //连接失败
     void onConnectFail(String errorMsg);
 
+    //连接关闭
     void onConnectClose();
 
+    //接收到的数据
     void onResultMessage(byte[] data);
 }

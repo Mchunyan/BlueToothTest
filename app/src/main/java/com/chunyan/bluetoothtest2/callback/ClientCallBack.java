@@ -26,8 +26,10 @@ public interface ClientCallBack {
 
     //连接成功
     void onConnectSuccess();
+
     //连接失败
     void onConnectFail(String errorMsg);
+
     //连接关闭
     void onConnectClose();
 }
