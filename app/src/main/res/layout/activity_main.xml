@@ -41,7 +41,7 @@
                         android:layout_height="wrap_content"
                         android:hint="null"
                         android:textColor="#000000"
-                        android:textSize="18dp" />
+                        android:textSize="15dp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -63,7 +63,7 @@
                         android:layout_height="wrap_content"
                         android:hint="null"
                         android:textColor="#000000"
-                        android:textSize="18dp" />
+                        android:textSize="15dp" />
                 </LinearLayout>
             </LinearLayout>
 

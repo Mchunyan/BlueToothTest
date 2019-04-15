@@ -1,5 +1,6 @@
 package com.chunyan.bluetoothtest2;
 
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -8,13 +9,17 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -36,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView textView2;
     private TextView textView3;
     private EditText editTxt;
+    String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
     private final int openBTCode = 100;
     // ----------------经典蓝牙------------------
     private ClassicsBlueToothService.ClassicaBlueToothBind classicaBTBind;
@@ -45,7 +51,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //---------------低功耗蓝牙----------------
     private BleBlueToothService.BleBlueToothBind bleBTBind;
     private ServiceConnection bleConnection;
-    private BluetoothAdapter.LeScanCallback mLeScanCallback;
+    private BluetoothAdapter.LeScanCallback leScanCallback;
+    private ScanCallback scanCallback;
     private BluetoothGattCallback mBluetoothGattCallback;
     private ClientCallBack blueCallBack;
     private String text = "";
@@ -57,11 +64,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //检查权限   >6.0以上版本需要动态的申请定位权限,< 6.0 清单文件声明了即可
-        LocalUtils.checkPermissions(this);
         initView();
-        initClassica();
-        initBle();
+        //检查权限   >6.0以上版本需要动态的申请定位权限,< 6.0 清单文件声明了即可
+        if (LocalUtils.checkLocalPermissiion(this, permissions)) {
+            initClassica();
+            initBle();
+        }
 
     }
 
@@ -115,7 +123,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 super.onConnectionStateChange(gatt, status, newState);
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    Log.e("mcy", "连接成功...");
+                    textView2.setText(textView2.getText() + "\n" + gatt.getDevice().getName());
+                    Log.e("mcy", "连接成功..."+ gatt.getDevice().getName());
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     Log.e("mcy", "连接断开...");
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
@@ -174,26 +183,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 super.onMtuChanged(gatt, mtu, status);
             }
         };
-
-        mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
+        //api<21,回调这个方法
+        leScanCallback = new BluetoothAdapter.LeScanCallback() {
             @Override
             public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                //在这里可以把搜索到的设备保存起来,device.getName();获取蓝牙设备名字,device.getAddress();获取蓝牙设备mac地址
-                //重复过滤方法，列表中包含不该设备才加入列表中，并刷新列表
-                if (!devicesList.contains(device)) {
-                    //将设备加入列表数据中
-                    devicesList.add(device);
-                }
-                Log.e("mcy", "扫描到设备-->" + device.getName());
-                textView.setText(textView.getText() + "\n" + device.getName());
-                Log.e(TAG, "" + device.getName());
-                //已配对的蓝牙
-                if (device.getBondState() == BluetoothDevice.BOND_BONDED) {//BOND_BONDED 已经配对状态
-                    textView2.setText(textView2.getText() + "\n" + device.getName());
-                } else {
-                    bleBTBind.connectLeDevice(MainActivity.this, devicesList.get(0), mBluetoothGattCallback);
+
+                if (!TextUtils.isEmpty(device.getName())) {
+                    if (!devicesList.contains(device)) {
+                        devicesList.add(device);
+                        Log.e("mcy", "扫描到设备-->" + device.getName());
+                        textView.setText(textView.getText() + "\n" + device.getName());
+                    }
+                    //已配对的蓝牙
+                    if (device.getBondState() == BluetoothDevice.BOND_BONDED) {//
+                        textView2.setText(textView2.getText() + "\n" + device.getName());
+                    } else {
+                        //   bleBTBind.connectLeDevice(MainActivity.this, devicesList.get(0), mBluetoothGattCallback);
+                    }
                 }
 
+
+            }
+        };
+        //api>21回调这个借口
+        scanCallback = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                if (!TextUtils.isEmpty(result.getDevice().getName())) {
+                    if (!devicesList.contains(result.getDevice())) {
+                        devicesList.add(result.getDevice());
+                        Log.e("mcy", "扫描到设备-->" + result.getDevice().getName());
+                        textView.setText(textView.getText() + "\n" + result.getDevice().getName());
+                    }
+                    if (result.getDevice().getName().equals("00doos009000012123")) {//连接制定的设备。！！！！！测试使用！！！！！！
+                        bleBTBind.connectLeDevice(MainActivity.this, result.getDevice(), mBluetoothGattCallback);
+                    }
+                }
+            }
+
+            //批量结果
+            @Override
+            public void onBatchScanResults(List<ScanResult> results) {
+                Log.e("mcy", "扫描批量设备-->" + results.size());
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                Log.e("mcy", "扫描失败：" + errorCode);
             }
         };
         bleConnection = new ServiceConnection() {
@@ -205,13 +241,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (!bleBTBind.getAdapter().isEnabled()) {
                         //打开蓝牙
                         openBlueSync(MainActivity.this, openBTCode);
+                    } else {
+                        //========================开始执行工作=============================
+                        bleBTBind.scanLeDevice(leScanCallback, scanCallback);
                     }
                 } else {
                     Log.e("mcy", "此设备不支持蓝牙");
                 }
 
-                //========================开始执行工作=============================
-                bleBTBind.scanLeDevice(mLeScanCallback);
+
             }
 
             @Override
@@ -308,12 +346,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (!classicaBTBind.getAdapter().isEnabled()) {
                         //打开蓝牙
                         openBlueSync(MainActivity.this, openBTCode);
+                    } else {
+                        //========================开始执行工作=============================
+                        //classicaBTBind.scanBlueTooth();//扫描蓝牙
                     }
                 } else {
                     Toast.makeText(MainActivity.this, "此设备不支持蓝牙", Toast.LENGTH_SHORT).show();
                 }
-                //========================开始执行工作=============================
-                //classicaBTBind.scanBlueTooth();//扫描蓝牙
+
 
             }
 
@@ -326,7 +366,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bindService(new Intent(this, ClassicsBlueToothService.class), classicaConnection, BIND_AUTO_CREATE);
     }
 
-    //注册读数据事件
+
+    //经典蓝牙注册读数据事件
     private void registReadListener() {
         classicaBTBind.readListern("Demo", uuid, new ServiceCallback() {
 
@@ -374,7 +415,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-
     /**
      * 自动打开蓝牙（同步）
      * 这个方法打开蓝牙会弹出提示
@@ -386,11 +426,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    //GPS
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unbindService(classicaConnection);
-        unbindService(bleConnection);
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case LocalUtils.open_GPSCode://检查是否手机打开定位
+                if (LocalUtils.checkGPSIsOpen(this)) {
+                    LocalUtils.checkLocalPermissiion(this, permissions);
+                } else {
+                    LocalUtils.goToOpenGPS(this);
+                }
+                break;
+        }
     }
 
     /**
@@ -404,20 +452,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (grantResults.length > 0) {
                     for (int i = 0; i < grantResults.length; i++) {
                         if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                            LocalUtils.onPermissionGranted(this, permissions[i]);
+                            initClassica();
+                            initBle();
                         }
                     }
-                }
-                break;
-            case LocalUtils.open_GPSCode://检查是否手机打开定位
-                if (LocalUtils.checkGPSIsOpen(this)) {
-                    LocalUtils.checkPermissions(this);
-                } else {
-                    LocalUtils.goToOpenGPS(this);
                 }
                 break;
         }
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(classicaConnection);
+        unbindService(bleConnection);
+    }
 }

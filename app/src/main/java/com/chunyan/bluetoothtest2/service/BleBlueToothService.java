@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
@@ -26,17 +27,19 @@ import java.util.UUID;
 public class BleBlueToothService extends Service {
 
     private boolean isScanning;//是否正在搜索
-    private static final long SCAN_PERIOD = 15000;//15秒的搜索时间
+    private static final long SCAN_PERIOD = 15000;//10秒的搜索时间
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothGatt bluetoothGatt;
     private BluetoothGattService gattService;
     private BluetoothGattCharacteristic gSCharacteristic;
+    private BluetoothLeScanner bluetoothLeScanner;
 
     @Override
     public void onCreate() {
         super.onCreate();
         //获取蓝牙适配器
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetoothLeScanner = bluetoothAdapter.getBluetoothLeScanner();
 
     }
 
@@ -49,56 +52,38 @@ public class BleBlueToothService extends Service {
         /**
          * 扫描
          */
-        public void scanLeDevice(final BluetoothAdapter.LeScanCallback mLeScanCallback) {
+        public void scanLeDevice(final BluetoothAdapter.LeScanCallback leScanCallback, final ScanCallback scanCallback) {
             //15秒后停止搜索
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     isScanning = false;
-                    stopScan(mLeScanCallback);
+                    stopScan(leScanCallback, scanCallback);
                 }
             }, SCAN_PERIOD);
             isScanning = true;
 
-
-
-            if(Build.VERSION.SDK_INT>21){
-                bluetoothAdapter.getBluetoothLeScanner().startScan(new ScanCallback() {
-                    @Override
-                    public void onScanResult(int callbackType, ScanResult result) {
-                        super.onScanResult(callbackType, result);
-                        Log.e("mcy","111111"+result.getDevice().getName());
-                    }
-
-                    @Override
-                    public void onBatchScanResults(List<ScanResult> results) {
-                        super.onBatchScanResults(results);
-                    }
-
-                    @Override
-                    public void onScanFailed(int errorCode) {
-                        super.onScanFailed(errorCode);
-                    }
-                });
-            } else{
-                bluetoothAdapter.startLeScan(mLeScanCallback); //开始搜索
+            if (Build.VERSION.SDK_INT > 21) {
+                bluetoothLeScanner.startScan(scanCallback);//开始搜索
+            } else {
+                bluetoothAdapter.startLeScan(leScanCallback); //开始搜索
             }
-
-
-
-
-
-
             Log.e("mcy", "开始扫描...");
         }
 
         /**
          * 停止扫描
          */
-        public void stopScan(BluetoothAdapter.LeScanCallback mLeScanCallback) {
+        public void stopScan(BluetoothAdapter.LeScanCallback mLeScanCallback, ScanCallback scanCallback) {
             if (!isScanning) {
                 Log.e("mcy", "停止扫描...");
-                bluetoothAdapter.stopLeScan(mLeScanCallback);
+                if (mLeScanCallback != null) {
+                    bluetoothAdapter.stopLeScan(mLeScanCallback);
+                }
+                if (scanCallback != null) {
+                    bluetoothLeScanner.stopScan(scanCallback);
+                }
+
             }
         }
 

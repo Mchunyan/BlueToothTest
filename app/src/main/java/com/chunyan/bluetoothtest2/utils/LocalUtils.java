@@ -12,6 +12,7 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,73 +23,18 @@ public class LocalUtils {
     public static final int permission_LocationCode = 101;
     //打开gps定位
     public static final int open_GPSCode = 102;
+    static String[] permissionsIndex;
 
-    /**
-     * 检查权限
-     */
-    public static void checkPermissions(final Activity activity) {
-        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
-        List<String> permissionDeniedList = new ArrayList<>();
-        for (String permission : permissions) {
-            int permissionCheck = ContextCompat.checkSelfPermission(activity, permission);
-            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-                onPermissionGranted(activity, permission);
-            } else {
-                permissionDeniedList.add(permission);
-            }
+    public static boolean checkLocalPermissiion(Activity activity, String[] permissions) {
+        permissionsIndex = permissions;
+        if (checkGPSIsOpen(activity)) {
+            return checkPermissions(activity);
+        } else {
+            Toast.makeText(activity, "需要打开GPS", Toast.LENGTH_SHORT).show();
+            goToOpenGPS(activity);
         }
-        if (!permissionDeniedList.isEmpty()) {
-            String[] deniedPermissions = permissionDeniedList.toArray(new String[permissionDeniedList.size()]);
-            ActivityCompat.requestPermissions(activity, deniedPermissions, permission_LocationCode);
-        }
+        return false;
     }
-
-    /**
-     * 开启GPS
-     *
-     * @param permission
-     */
-    public static void onPermissionGranted(final Activity activity, String permission) {
-        switch (permission) {
-            case Manifest.permission.ACCESS_FINE_LOCATION:
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !checkGPSIsOpen(activity)) {
-                    new AlertDialog.Builder(activity)
-                            .setTitle("提示")
-                            .setMessage("当前手机扫描蓝牙需要打开定位功能。")
-                            .setNegativeButton("取消",
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            activity.finish();
-                                        }
-                                    })
-                            .setPositiveButton("前往设置",
-                                    new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            goToOpenGPS(activity);
-                                        }
-                                    })
-
-                            .setCancelable(false)
-                            .show();
-                } else {
-                    //GPS已经开启了
-                }
-                break;
-        }
-    }
-
-    /**
-     * 去手机设置打开GPS
-     *
-     * @param activity
-     */
-    public static void goToOpenGPS(Activity activity) {
-        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-        activity.startActivityForResult(intent, open_GPSCode);
-    }
-
 
     /**
      * 检查GPS是否打开
@@ -100,5 +46,38 @@ public class LocalUtils {
         if (locationManager == null)
             return false;
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
+
+    /**
+     * 检查权限
+     */
+    public static boolean checkPermissions(final Activity activity) {
+        List<String> permissionDeniedList = new ArrayList<>();
+        for (String permission : permissionsIndex) {
+            int permissionCheck = ContextCompat.checkSelfPermission(activity, permission);
+            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            } else {
+                permissionDeniedList.add(permission);
+            }
+        }
+        if (!permissionDeniedList.isEmpty()) {
+            String[] deniedPermissions = permissionDeniedList.toArray(new String[permissionDeniedList.size()]);
+            ActivityCompat.requestPermissions(activity, deniedPermissions, permission_LocationCode);
+        }
+        return false;
+    }
+
+
+    /**
+     * 去手机设置打开GPS
+     *
+     * @param activity
+     */
+    public static void goToOpenGPS(Activity activity) {
+        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        activity.startActivityForResult(intent, open_GPSCode);
+
     }
 }
