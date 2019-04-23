@@ -28,6 +28,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.chunyan.bluetoothtest2.callback.BleResultCallBack;
 import com.chunyan.bluetoothtest2.callback.ClientCallBack;
 import com.chunyan.bluetoothtest2.callback.ServiceCallback;
 import com.chunyan.bluetoothtest2.service.BleBlueToothService;
@@ -55,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ServiceConnection bleConnection;
     private BluetoothAdapter.LeScanCallback leScanCallback;
     private ScanCallback scanCallback;
-    private BluetoothGattCallback mBluetoothGattCallback;
     private ClientCallBack blueCallBack;
     private String text = "";
 
@@ -93,92 +93,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 classicaBTBind.sendData(text.getBytes());
                 break;
             case R.id.button11://低功耗--发送数据
-                bleBTBind.sendData();
                 break;
 
         }
     }
 
     private void initBle() {
-
-
-        mBluetoothGattCallback = new BluetoothGattCallback() {
-            @Override
-            public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
-                super.onPhyUpdate(gatt, txPhy, rxPhy, status);
-            }
-
-            @Override
-            public void onPhyRead(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
-                super.onPhyRead(gatt, txPhy, rxPhy, status);
-            }
-
-            //当连接状态发生改变
-            @Override
-            public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-                super.onConnectionStateChange(gatt, status, newState);
-                if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    textView2.setText(textView2.getText() + "\n" + gatt.getDevice().getName());
-                    Log.e("mcy", "连接成功..."+ gatt.getDevice().getName());
-                } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                    Log.e("mcy", "连接断开...");
-                } else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
-                    Log.e("mcy", "连接ing...");
-                }
-            }
-
-            //发现新服务，即调用了mBluetoothGatt.discoverServices()后，返回的数据
-            @Override
-            public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-                super.onServicesDiscovered(gatt, status);
-            }
-
-            //调用mBluetoothGatt.readCharacteristic(characteristic)读取数据回调，在这里面接收数据
-            @Override
-            public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                super.onCharacteristicRead(gatt, characteristic, status);
-                //这里面就是数据
-                characteristic.getValue();
-            }
-
-            //发送数据后的回调
-            @Override
-            public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-                super.onCharacteristicWrite(gatt, characteristic, status);
-            }
-
-            @Override
-            public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-                super.onCharacteristicChanged(gatt, characteristic);
-            }
-
-            @Override
-            public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {//descriptor读
-                super.onDescriptorRead(gatt, descriptor, status);
-            }
-
-            @Override
-            public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {//descriptor写
-                super.onDescriptorWrite(gatt, descriptor, status);
-            }
-
-            @Override
-            public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
-                super.onReliableWriteCompleted(gatt, status);
-            }
-
-            //调用mBluetoothGatt.readRemoteRssi()时的回调，rssi即信号强度
-            @Override
-            public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {//读Rssi
-                super.onReadRemoteRssi(gatt, rssi, status);
-            }
-
-            @Override
-            public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
-                super.onMtuChanged(gatt, mtu, status);
-            }
-        };
-        //api<21,回调这个方法
+        //api<21回调这个借口
         leScanCallback = new BluetoothAdapter.LeScanCallback() {
             @Override
             public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
@@ -189,12 +110,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.e("mcy", "扫描到设备-->" + device.getName());
                         textView.setText(textView.getText() + "\n" + device.getName());
                     }
-                    //已配对的蓝牙
-                    if (device.getBondState() == BluetoothDevice.BOND_BONDED) {//
-                        textView2.setText(textView2.getText() + "\n" + device.getName());
-                    } else {
-                        //   bleBTBind.connectLeDevice(MainActivity.this, devicesList.get(0), mBluetoothGattCallback);
-                    }
+
                 }
 
 
@@ -210,8 +126,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.e("mcy", "扫描到设备-->" + result.getDevice().getName());
                         textView.setText(textView.getText() + "\n" + result.getDevice().getName());
                     }
-                    if (result.getDevice().getName().equals("00doos009000012123")) {//连接制定的设备。！！！！！测试使用！！！！！！
-                        bleBTBind.connectLeDevice(MainActivity.this, result.getDevice(), mBluetoothGattCallback);
+                    if (result.getDevice().getName().equals("00doos009000012147")) {//连接制定的设备。！！！！！测试使用！！！！！！
+                        bleBTBind.connectLeDevice(MainActivity.this, result.getDevice());
                     }
                 }
             }
@@ -238,7 +154,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         openBlueSync(MainActivity.this, openBTCode);
                     } else {
                         //========================开始执行工作=============================
-                      //  bleBTBind.scanLeDevice(leScanCallback, scanCallback);
+                        bleBTBind.scanLeDevice(leScanCallback, scanCallback);
+                        bleBTBind.setBleResultCallBack(new BleResultCallBack() {
+                            @Override
+                            public void onReturnResult(byte[] data) {
+
+                            }
+
+                            @Override
+                            public void onDiscoverServicesSuccess() {
+                                bleBTBind.stopScan(leScanCallback, scanCallback);
+                                bleBTBind.sendDataToBT();
+
+                            }
+                        });
                     }
                 } else {
                     Log.e("mcy", "此设备不支持蓝牙");
@@ -342,9 +271,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //打开蓝牙
                         openBlueSync(MainActivity.this, openBTCode);
                     } else {
-                        //========================开始执行工作=============================
-                        classicaBTBind.scanBlueTooth();//扫描蓝牙
-                        registReadListener();//注册读数据事件
+                        //==============从开始执行工作,释放开下面两行代码!!!================
+//                        classicaBTBind.scanBlueTooth();//扫描蓝牙
+//                        registReadListener();//注册读数据事件
                     }
                 } else {
                     Toast.makeText(MainActivity.this, "此设备不支持蓝牙", Toast.LENGTH_SHORT).show();
@@ -448,6 +377,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     for (int i = 0; i < grantResults.length; i++) {
                         if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                             initClassica();//初始化经典蓝牙
+                            initBle();//初始化低功耗蓝牙
+
                         }
                     }
                 }
