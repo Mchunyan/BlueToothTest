@@ -34,6 +34,7 @@ import com.chunyan.bluetoothtest2.callback.ServiceCallback;
 import com.chunyan.bluetoothtest2.service.BleBlueToothService;
 import com.chunyan.bluetoothtest2.service.ClassicsBlueToothService;
 import com.chunyan.bluetoothtest2.utils.LocalUtils;
+import com.chunyan.bluetoothtest2.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -123,24 +124,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!TextUtils.isEmpty(result.getDevice().getName())) {
                     if (!devicesList.contains(result.getDevice())) {
                         devicesList.add(result.getDevice());
-                        Log.e("mcy", "扫描到设备-->" + result.getDevice().getName());
                         textView.setText(textView.getText() + "\n" + result.getDevice().getName());
                     }
                     if (result.getDevice().getName().equals("00doos009000012147")) {//连接制定的设备。！！！！！测试使用！！！！！！
-                        bleBTBind.connectLeDevice(MainActivity.this, result.getDevice());
+                        Log.e("mcy", "扫描到设备-->" + result.getDevice().getName());
+                        bleBTBind.stopScan(leScanCallback, scanCallback);
+                        bleBTBind.connection(MainActivity.this, result.getDevice().getAddress());
                     }
                 }
-            }
-
-            //批量结果
-            @Override
-            public void onBatchScanResults(List<ScanResult> results) {
-                Log.e("mcy", "扫描批量设备-->" + results.size());
-            }
-
-            @Override
-            public void onScanFailed(int errorCode) {
-                Log.e("mcy", "扫描失败：" + errorCode);
             }
         };
         bleConnection = new ServiceConnection() {
@@ -155,10 +146,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } else {
                         //========================开始执行工作=============================
                         bleBTBind.scanLeDevice(leScanCallback, scanCallback);
+                        final StringBuilder stringBuilder = new StringBuilder();
                         bleBTBind.setBleResultCallBack(new BleResultCallBack() {
                             @Override
                             public void onReturnResult(byte[] data) {
-
+                                bleBTBind.stopScan(leScanCallback, scanCallback);
+                                for (byte byteChar : data) {
+                                    stringBuilder.append(String.format("%02X ", byteChar));
+                                }
+                                String returnedPacket = stringBuilder.toString().replace(" ", "");
+                                byte[] packetByte = Utils.hexStringToByteArray(returnedPacket);
+                                if (packetByte.length - 5 == Utils.getLengthFromToken(packetByte)) {
+                                    Log.e("mcy_returnedPacket", returnedPacket);
+                                    bleBTBind.cancleConnection();//取消连接
+                                }
                             }
 
                             @Override
@@ -265,19 +266,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (blueCallBack != null) {
                     classicaBTBind.setBlueCallback(blueCallBack);//设置广播监听
                 }
-                if (classicaBTBind.getAdapter() != null) {
-                    //判断蓝牙是否开启
-                    if (!classicaBTBind.getAdapter().isEnabled()) {
-                        //打开蓝牙
-                        openBlueSync(MainActivity.this, openBTCode);
-                    } else {
-                        //==============从开始执行工作,释放开下面两行代码!!!================
+//                if (classicaBTBind.getAdapter() != null) {
+//                    //判断蓝牙是否开启
+//                    if (!classicaBTBind.getAdapter().isEnabled()) {
+//                        //打开蓝牙
+//                        openBlueSync(MainActivity.this, openBTCode);
+//                    } else {
+//                        //==============从开始执行工作,释放开下面两行代码!!!================
 //                        classicaBTBind.scanBlueTooth();//扫描蓝牙
 //                        registReadListener();//注册读数据事件
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "此设备不支持蓝牙", Toast.LENGTH_SHORT).show();
-                }
+//                    }
+//                } else {
+//                    Toast.makeText(MainActivity.this, "此设备不支持蓝牙", Toast.LENGTH_SHORT).show();
+//                }
 
 
             }

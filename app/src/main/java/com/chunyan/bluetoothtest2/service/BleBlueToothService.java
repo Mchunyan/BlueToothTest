@@ -32,18 +32,19 @@ import java.util.UUID;
 public class BleBlueToothService extends Service {
 
     private boolean isScanning;//是否正在搜索
-    private static final long SCAN_PERIOD = 15000;//10秒的搜索时间
+    private static final long SCAN_PERIOD = 10000;//10秒的搜索时间
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothGatt bluetoothGatt;
-    private BluetoothGattCharacteristic gSCharacteristic;
     private BluetoothLeScanner bluetoothLeScanner;
     private BluetoothGattCallback mBluetoothGattCallback;
     private BleResultCallBack bleResultCallBack;
-    private BluetoothGattService bluetoothGattService;
-    private BluetoothGattCharacteristic bluetoothGattCharacteristic;
+    private BluetoothGattService gattService;
+    private BluetoothGattCharacteristic gattCharacteristic;
 
     private byte[][] data = new byte[][]{{2, 0, 19, 67, 79, 49, 50, 51, 52, 53, 54, 55, 56, 1, 73, -33, 77, -19, -61, -1},
             {41, -45, -26, 3}};
+
+    private int indexTpye = 0;
 
     @Override
     public void onCreate() {
@@ -73,21 +74,24 @@ public class BleBlueToothService extends Service {
                 super.onServicesDiscovered(gatt, status);
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     Log.e("mcy", "发现服务成功...");
-                    bluetoothGattService = gatt.getService(UUID.fromString("49535343-fe7d-4ae5-8fa9-9fafd205e455"));
-                    if (bluetoothGattService != null) {
-                        bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString("49535343-8841-43F4-A8D4-ECBE34729BB3"));
-                        if (bluetoothGattCharacteristic != null) {
-                            bleResultCallBack.onDiscoverServicesSuccess();
-                        }
+                    gattService = gatt.getService(UUID.fromString("49535343-fe7d-4ae5-8fa9-9fafd205e455"));
+                    indexTpye = 1;
+                    if (gattService == null) {
+                        indexTpye = 2;
+                        gattService = gatt.getService(UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"));
+                    }
+                    if (gattService == null) {
+                        Log.e("mcy", "获取bluetoothGattService失败...");
                     } else {
-                        bluetoothGattService = bluetoothGatt.getService(UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb"));
-                        if (bluetoothGattService != null) {
-                            bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
-                            if (bluetoothGattCharacteristic != null) {
-                                bleResultCallBack.onDiscoverServicesSuccess();
-                            }
+                        if (indexTpye == 1) {
+                            gattCharacteristic = gattService.getCharacteristic(UUID.fromString("49535343-8841-43F4-A8D4-ECBE34729BB3"));
                         } else {
+                            gattCharacteristic = gattService.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
+                        }
+                        if (gattCharacteristic == null) {
                             Log.e("mcy", "获取Characteristic失败...");
+                        } else {
+                            bleResultCallBack.onDiscoverServicesSuccess();
                         }
                     }
                 } else {
@@ -114,15 +118,12 @@ public class BleBlueToothService extends Service {
             @Override
             public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
                 super.onCharacteristicChanged(gatt, characteristic);
-                Log.e("mcy", "onCharacteristicChanged...");
+                Log.e("mcy", "---蓝牙回传数据onCharacteristicChanged---");
                 byte[] value = characteristic.getValue();
                 if (value != null && value.length > 0) {
                     Log.e("mcy", "接收数据" + Arrays.toString(value));
-                    final StringBuilder stringBuilder = new StringBuilder(data.length);
-                    for (byte byteChar : value) {
-                        stringBuilder.append(String.format("%02X ", byteChar));
-                    }
-                    Log.e("mcy", "接收数据" + stringBuilder.toString());
+                    bleResultCallBack.onReturnResult(value);
+
                 }
             }
 
@@ -144,15 +145,16 @@ public class BleBlueToothService extends Service {
          * 扫描
          */
         public void scanLeDevice(final BluetoothAdapter.LeScanCallback leScanCallback, final ScanCallback scanCallback) {
-            //15秒后停止搜索
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    isScanning = false;
-                    stopScan(leScanCallback, scanCallback);
-                }
-            }, SCAN_PERIOD);
-            isScanning = true;
+//            //10秒后停止搜索
+//            new Handler().postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    isScanning = false;
+//                    Log.e("mcy", "10s钟到啦,停止扫描...");
+//                    stopScan(leScanCallback, scanCallback);
+//                }
+//            }, SCAN_PERIOD);
+//            isScanning = true;
 
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
                 if (bluetoothAdapter.isEnabled() && bluetoothLeScanner != null) {
@@ -174,16 +176,16 @@ public class BleBlueToothService extends Service {
          * 停止扫描
          */
         public void stopScan(BluetoothAdapter.LeScanCallback mLeScanCallback, ScanCallback scanCallback) {
-            if (!isScanning) {
-                Log.e("mcy", "停止扫描...");
-                if (bluetoothAdapter != null && mLeScanCallback != null) {
-                    bluetoothAdapter.stopLeScan(mLeScanCallback);
-                }
-                if (bluetoothLeScanner != null && scanCallback != null) {
-                    bluetoothLeScanner.stopScan(scanCallback);
-                }
-
+//            if (!isScanning) {
+            Log.e("mcy", "停止扫描...");
+            if (bluetoothAdapter != null && mLeScanCallback != null) {
+                bluetoothAdapter.stopLeScan(mLeScanCallback);
             }
+            if (bluetoothLeScanner != null && scanCallback != null) {
+                bluetoothLeScanner.stopScan(scanCallback);
+            }
+
+//            }
         }
 
 
@@ -193,33 +195,58 @@ public class BleBlueToothService extends Service {
 
         public void connectLeDevice(Context context, BluetoothDevice device) {
             bluetoothGatt = device.connectGatt(context, false, mBluetoothGattCallback);
+        }
 
+        public void connection(Context context, String address) {
+            if (BluetoothAdapter.checkBluetoothAddress(address)) {
+                BluetoothDevice remoteDevice = bluetoothAdapter.getRemoteDevice(address);
+                if (remoteDevice == null) {
+                    Log.e("mcy", "remoteDevice not found.  Unable to connect.");
+                }
+                connectLeDevice(context, remoteDevice);
+            } else {
+                Log.e("mcy", "remoteDevice address 不可用");
+            }
         }
 
         /**
          * 向蓝牙发送数据
          */
         public void sendDataToBT() {
-            if (bluetoothGattCharacteristic != null && bluetoothGatt != null) {
+            if (gattCharacteristic != null && bluetoothGatt != null) {
                 //设置读数据的UUID
-                if (bluetoothGattService == null) {
-                    bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString("49535343-1E4D-4BD9-BA61-23C647249616"));
+                if (indexTpye == 1) {
+                    gattCharacteristic = gattService.getCharacteristic(UUID.fromString("49535343-1E4D-4BD9-BA61-23C647249616"));
                 } else {
-                    bluetoothGattCharacteristic = bluetoothGattService.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
+                    gattCharacteristic = gattService.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
                 }
-                bluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, true);
+                bluetoothGatt.setCharacteristicNotification(gattCharacteristic, true);
                 for (byte[] datum : data) {
-                    bluetoothGattCharacteristic.setValue(datum);
-                    boolean b = bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristic);
-                    Log.e("mcy", "发送数据是否成功:" + b);
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    Log.e("mcy_devidedPacket", "" + Arrays.toString(datum));
+                    gattCharacteristic.setValue(datum);
+                    writeData();
                 }
             }
 
+        }
+
+        private void writeData() {
+            try {
+                boolean b = bluetoothGatt.writeCharacteristic(gattCharacteristic);
+                if (b) {
+                    Thread.sleep(100);
+                } else {
+                    for (int i = 0; i < 10; i++) {
+                        Thread.sleep(100);
+                        writeData();
+                    }
+                    return;
+                }
+                Log.e("mcy", "发送数据是否成功:" + b);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         /**
@@ -227,10 +254,10 @@ public class BleBlueToothService extends Service {
          */
         public void cancleConnection() {
             if (bluetoothGatt != null) {
-                bluetoothGatt.disconnect();
+                bluetoothGatt.close();
+                Log.e("mcy", "主动断开连接...");
             }
         }
-
 
     }
 
