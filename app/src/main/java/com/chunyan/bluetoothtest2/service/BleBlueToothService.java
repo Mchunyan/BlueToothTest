@@ -6,12 +6,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
@@ -26,7 +24,6 @@ import com.chunyan.bluetoothtest2.utils.Utils;
 
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 
@@ -94,7 +91,7 @@ public class BleBlueToothService extends Service {
                         if (gattCharacteristic == null) {
                             Log.e("mcy", "获取Characteristic失败...");
                         } else {
-                            bluetoothGatt.setCharacteristicNotification(gattCharacteristic, true);
+                            bluetoothGatt.setCharacteristicNotification(gattCharacteristic, true);//这一句是为了接受蓝牙数据,必须写!!!否则接受不到数据
                             bleResultCallBack.onDiscoverServicesSuccess();
                         }
                     }

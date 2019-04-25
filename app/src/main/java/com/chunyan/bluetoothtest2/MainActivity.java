@@ -4,16 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCallback;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -26,7 +19,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.chunyan.bluetoothtest2.callback.BleResultCallBack;
 import com.chunyan.bluetoothtest2.callback.ClientCallBack;
@@ -44,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView textView;
     private TextView textView2;
     private TextView textView3;
+    private TextView textView4;
+    private TextView textView5;
     private EditText editTxt;
     String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
     private final int openBTCode = 100;
@@ -81,6 +75,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         textView = findViewById(R.id.textView);
         textView2 = findViewById(R.id.textView2);
         textView3 = findViewById(R.id.textView3);
+        textView4 = findViewById(R.id.textView4);
+        textView5 = findViewById(R.id.textview5);
         editTxt = findViewById(R.id.editTxt);
         findViewById(R.id.button5).setOnClickListener(this);
     }
@@ -106,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (!devicesList.contains(device)) {
                         devicesList.add(device);
                         Log.e("mcy", "扫描到设备-->" + device.getName());
-                        textView.setText(textView.getText() + "\n" + device.getName());
+                        textView4.setText(textView.getText() + "\n" + device.getName());
                     }
                     if (device.getName().equals("00doos009000012147")) {//连接制定的设备。！！！！！测试使用！！！！！！
                         Log.e("mcy", "扫描到设备-->" + device.getName());
@@ -126,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (!TextUtils.isEmpty(result.getDevice().getName())) {
                     if (!devicesList.contains(result.getDevice())) {
                         devicesList.add(result.getDevice());
-                        textView.setText(textView.getText() + "\n" + result.getDevice().getName());
+                        textView4.setText(textView.getText() + "\n" + result.getDevice().getName());
                     }
                     if (result.getDevice().getName().equals("00doos009000012147")) {//连接制定的设备。！！！！！测试使用！！！！！！
                         Log.e("mcy", "扫描到设备-->" + result.getDevice().getName());
@@ -170,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 byte[] packetByte = Utils.hexStringToByteArray(returnedPacket);
                                 if (packetByte.length - 5 == Utils.getLengthFromToken(packetByte)) {
                                     Log.e("mcy_returnedPacket", returnedPacket);
+                                    textView5.setText(returnedPacket.toString());
                                     bleBTBind.cancleConnection();//取消连接
                                 }
                             }

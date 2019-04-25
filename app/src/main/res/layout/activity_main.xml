@@ -116,6 +116,7 @@
             <View
                 android:layout_width="1dp"
                 android:layout_height="match_parent"
+                android:layout_margin="10dp"
                 android:background="#000000" />
 
             <LinearLayout
@@ -146,6 +147,7 @@
                     android:hint="null"
                     android:textColor="#000000"
                     android:textSize="15dp" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -156,9 +158,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:hint="null"
+                    android:hint="  这个数据书二进制的 byte[] 数组,在代码里面写死了,实际应用中,根据公司需求来的,因为低功耗蓝牙连接的声明周期短,一般 20s 左右就自动断开了,所以,一旦连接成功,就要发送数据,或者读取数据的"
                     android:textColor="#000000"
                     android:textSize="15dp" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -167,6 +170,7 @@
                     android:textSize="18dp" />
 
                 <TextView
+                    android:id="@+id/textview5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:hint="null"
