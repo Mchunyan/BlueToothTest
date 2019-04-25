@@ -165,7 +165,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             @Override
                             public void onDiscoverServicesSuccess() {
                                 bleBTBind.stopScan(leScanCallback, scanCallback);
-                                bleBTBind.sendDataToBT();
+                                bleBTBind.sendDataToBT();//方式一
+//                                bleBTBind.sendDataToBT2();//方式二
 
                             }
                         });
@@ -382,6 +383,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         }
                     }
+                }
+                break;
+            case openBTCode://是否打开蓝牙
+                if (bleBTBind.getAdapter().isEnabled()) {
+                    initClassica();//初始化经典蓝牙
+                    initBle();//初始化低功耗蓝牙
+                } else {
+                    openBlueSync(MainActivity.this, openBTCode);//打开蓝牙
                 }
                 break;
         }

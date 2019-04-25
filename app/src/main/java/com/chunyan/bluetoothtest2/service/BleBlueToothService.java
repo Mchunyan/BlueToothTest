@@ -18,12 +18,16 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 
 import com.chunyan.bluetoothtest2.callback.BleResultCallBack;
+import com.chunyan.bluetoothtest2.utils.Utils;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 
 /**
@@ -31,8 +35,6 @@ import java.util.UUID;
  */
 public class BleBlueToothService extends Service {
 
-    private boolean isScanning;//是否正在搜索
-    private static final long SCAN_PERIOD = 10000;//10秒的搜索时间
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothGatt bluetoothGatt;
     private BluetoothLeScanner bluetoothLeScanner;
@@ -43,6 +45,7 @@ public class BleBlueToothService extends Service {
 
     private byte[][] data = new byte[][]{{2, 0, 19, 67, 79, 49, 50, 51, 52, 53, 54, 55, 56, 1, 73, -33, 77, -19, -61, -1},
             {41, -45, -26, 3}};
+    private byte[] data2 = new byte[]{2, 0, 19, 67, 79, 49, 50, 51, 52, 53, 54, 55, 56, 1, 73, -33, 77, -19, -61, -1, 41, -45, -26, 3};
 
     private int indexTpye = 0;
 
@@ -91,6 +94,7 @@ public class BleBlueToothService extends Service {
                         if (gattCharacteristic == null) {
                             Log.e("mcy", "获取Characteristic失败...");
                         } else {
+                            bluetoothGatt.setCharacteristicNotification(gattCharacteristic, true);
                             bleResultCallBack.onDiscoverServicesSuccess();
                         }
                     }
@@ -111,7 +115,7 @@ public class BleBlueToothService extends Service {
             @Override
             public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                 super.onCharacteristicWrite(gatt, characteristic, status);
-                Log.e("mcy", "onCharacteristicWrite...发送成功后走这个方法,并没有什么乱用");
+                Log.e("mcy", "onCharacteristicWrite...发送成功后走这个方法");
 
             }
 
@@ -145,16 +149,6 @@ public class BleBlueToothService extends Service {
          * 扫描
          */
         public void scanLeDevice(final BluetoothAdapter.LeScanCallback leScanCallback, final ScanCallback scanCallback) {
-//            //10秒后停止搜索
-//            new Handler().postDelayed(new Runnable() {
-//                @Override
-//                public void run() {
-//                    isScanning = false;
-//                    Log.e("mcy", "10s钟到啦,停止扫描...");
-//                    stopScan(leScanCallback, scanCallback);
-//                }
-//            }, SCAN_PERIOD);
-//            isScanning = true;
 
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
                 if (bluetoothAdapter.isEnabled() && bluetoothLeScanner != null) {
@@ -176,7 +170,6 @@ public class BleBlueToothService extends Service {
          * 停止扫描
          */
         public void stopScan(BluetoothAdapter.LeScanCallback mLeScanCallback, ScanCallback scanCallback) {
-//            if (!isScanning) {
             Log.e("mcy", "停止扫描...");
             if (bluetoothAdapter != null && mLeScanCallback != null) {
                 bluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -185,7 +178,6 @@ public class BleBlueToothService extends Service {
                 bluetoothLeScanner.stopScan(scanCallback);
             }
 
-//            }
         }
 
 
@@ -201,30 +193,37 @@ public class BleBlueToothService extends Service {
             if (BluetoothAdapter.checkBluetoothAddress(address)) {
                 BluetoothDevice remoteDevice = bluetoothAdapter.getRemoteDevice(address);
                 if (remoteDevice == null) {
-                    Log.e("mcy", "remoteDevice not found.  Unable to connect.");
+                    Log.e("mcy", "设备不可用");
                 }
                 connectLeDevice(context, remoteDevice);
             } else {
-                Log.e("mcy", "remoteDevice address 不可用");
+                Log.e("mcy", "设备不可用");
             }
         }
 
+        private Handler handler1 = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                writeData();
+
+            }
+        };
+
         /**
-         * 向蓝牙发送数据
+         * 向蓝牙发送数据方式一
          */
         public void sendDataToBT() {
             if (gattCharacteristic != null && bluetoothGatt != null) {
                 //设置读数据的UUID
-                if (indexTpye == 1) {
-                    gattCharacteristic = gattService.getCharacteristic(UUID.fromString("49535343-1E4D-4BD9-BA61-23C647249616"));
-                } else {
-                    gattCharacteristic = gattService.getCharacteristic(UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb"));
-                }
-                bluetoothGatt.setCharacteristicNotification(gattCharacteristic, true);
                 for (byte[] datum : data) {
                     Log.e("mcy_devidedPacket", "" + Arrays.toString(datum));
+                    bluetoothGatt.setCharacteristicNotification(gattCharacteristic, true);//不写这一句,蓝牙消息会回传不回来
                     gattCharacteristic.setValue(datum);
-                    writeData();
+                    Message message = new Message();
+                    message.obj = datum;
+                    handler1.sendMessage(message);
+
                 }
             }
 
@@ -234,20 +233,64 @@ public class BleBlueToothService extends Service {
             try {
                 boolean b = bluetoothGatt.writeCharacteristic(gattCharacteristic);
                 if (b) {
-                    Thread.sleep(100);
+                    Thread.sleep(200);
                 } else {
                     for (int i = 0; i < 10; i++) {
-                        Thread.sleep(100);
-                        writeData();
+                        if (bluetoothGatt.writeCharacteristic(gattCharacteristic)) {
+                            return;
+                        }
                     }
-                    return;
+                    Log.e("mcy", "10次递归发送数据失败" + b);
+                    cancleConnection();
                 }
                 Log.e("mcy", "发送数据是否成功:" + b);
 
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
+
+
         }
+
+        //存储待发送的数据队列
+        public Queue<byte[]> dataInfoQueue = new LinkedList<>();
+
+        private Handler handler2 = new Handler();
+
+        private Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                send();
+            }
+        };
+
+        /**
+         * 向蓝牙发送数据方式二
+         */
+        public void sendDataToBT2() {
+            if (dataInfoQueue != null) {
+                dataInfoQueue.clear();
+                dataInfoQueue = Utils.splitPacketFor20Byte(data2);
+                handler2.post(runnable);
+            }
+
+        }
+
+        private void send() {
+            if (dataInfoQueue != null && !dataInfoQueue.isEmpty()) {
+                //检测到发送数据，直接发送
+                if (dataInfoQueue.peek() != null) {
+                    gattCharacteristic.setValue(dataInfoQueue.poll());//移除并返回队列头部的元素
+                    boolean b = bluetoothGatt.writeCharacteristic(gattCharacteristic);
+                    Log.e("mcy", "发送数据是否成功:" + b);
+                }
+                //检测还有数据，延时后继续发送，一般延时100毫秒左右
+                if (dataInfoQueue.peek() != null) {
+                    handler2.postDelayed(runnable, 100);
+                }
+            }
+        }
+
 
         /**
          * 断开连接
