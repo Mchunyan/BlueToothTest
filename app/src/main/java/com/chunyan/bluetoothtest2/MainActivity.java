@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         textView3 = findViewById(R.id.textView3);
         editTxt = findViewById(R.id.editTxt);
         findViewById(R.id.button5).setOnClickListener(this);
-        findViewById(R.id.button11).setOnClickListener(this);
     }
 
     @Override
@@ -92,8 +91,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.button5://经典--写数据
                 text = editTxt.getText().toString();
                 classicaBTBind.sendData(text.getBytes());
-                break;
-            case R.id.button11://低功耗--发送数据
                 break;
 
         }
@@ -110,6 +107,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         devicesList.add(device);
                         Log.e("mcy", "扫描到设备-->" + device.getName());
                         textView.setText(textView.getText() + "\n" + device.getName());
+                    }
+                    if (device.getName().equals("00doos009000012147")) {//连接制定的设备。！！！！！测试使用！！！！！！
+                        Log.e("mcy", "扫描到设备-->" + device.getName());
+                        bleBTBind.stopScan(leScanCallback, scanCallback);
+                        bleBTBind.connectLeDevice(MainActivity.this, device);
                     }
 
                 }
@@ -129,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (result.getDevice().getName().equals("00doos009000012147")) {//连接制定的设备。！！！！！测试使用！！！！！！
                         Log.e("mcy", "扫描到设备-->" + result.getDevice().getName());
                         bleBTBind.stopScan(leScanCallback, scanCallback);
-                        bleBTBind.connection(MainActivity.this, result.getDevice().getAddress());
+                        bleBTBind.connectLeDevice(MainActivity.this, result.getDevice());
                     }
                 }
             }
@@ -148,6 +150,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         bleBTBind.scanLeDevice(leScanCallback, scanCallback);
                         final StringBuilder stringBuilder = new StringBuilder();
                         bleBTBind.setBleResultCallBack(new BleResultCallBack() {
+                            //连接成功回调
+                            @Override
+                            public void onDiscoverServicesSuccess() {
+                                bleBTBind.stopScan(leScanCallback, scanCallback);
+                                bleBTBind.sendDataToBT();//方式一
+//                                bleBTBind.sendDataToBT2();//方式二
+
+                            }
+
+                            //蓝牙返回数据回调
                             @Override
                             public void onReturnResult(byte[] data) {
                                 bleBTBind.stopScan(leScanCallback, scanCallback);
@@ -162,13 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                             }
 
-                            @Override
-                            public void onDiscoverServicesSuccess() {
-                                bleBTBind.stopScan(leScanCallback, scanCallback);
-                                bleBTBind.sendDataToBT();//方式一
-//                                bleBTBind.sendDataToBT2();//方式二
 
-                            }
                         });
                     }
                 } else {

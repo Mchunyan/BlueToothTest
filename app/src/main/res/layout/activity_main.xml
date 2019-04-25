@@ -15,18 +15,27 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            android:orientation="horizontal">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:layout_weight="1"
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="20dp"
+                        android:text="经典蓝牙:"
+                        android:textColor="#ff0000"
+                        android:textSize="18dp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -45,9 +54,8 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
@@ -65,85 +73,107 @@
                         android:textColor="#000000"
                         android:textSize="15dp" />
                 </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="接收的数据："
+                    android:textColor="#000000"
+                    android:textSize="18dp" />
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="null"
+                    android:textColor="#000000"
+                    android:textSize="18dp" />
+
+
+                <EditText
+                    android:id="@+id/editTxt"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:hint="请输入发送数据" />
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="经典蓝牙："
+                    android:textColor="#000000"
+                    android:textSize="18dp" />
+
+
+                <Button
+                    android:id="@+id/button5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送" />
+
             </LinearLayout>
 
-
-            <EditText
-                android:id="@+id/editTxt"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:hint="请输入发送数据" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="接收的数据："
-                android:textColor="#000000"
-                android:textSize="18dp" />
-
-            <TextView
-                android:id="@+id/textView3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:hint="null"
-                android:textColor="#000000"
-                android:textSize="18dp" />
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#000000" />
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:text="低功耗蓝牙:"
+                    android:textColor="#ff0000"
+                    android:textSize="18dp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="经典蓝牙："
-                        android:textColor="#000000"
-                        android:textSize="18dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="扫描到的蓝牙："
+                    android:textColor="#000000"
+                    android:textSize="18dp" />
 
+                <TextView
+                    android:id="@+id/textView4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="null"
+                    android:textColor="#000000"
+                    android:textSize="15dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="发送的数据："
+                    android:textColor="#000000"
+                    android:textSize="18dp" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="null"
+                    android:textColor="#000000"
+                    android:textSize="15dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="接收的数据："
+                    android:textColor="#000000"
+                    android:textSize="18dp" />
 
-
-                    <Button
-                        android:id="@+id/button5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="发送" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="低功耗（BLE）蓝牙："
-                        android:textColor="#000000"
-                        android:textSize="18dp" />
-
-
-                    <Button
-                        android:id="@+id/button11"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="发送" />
-
-                </LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:hint="null"
+                    android:textColor="#000000"
+                    android:textSize="15dp" />
             </LinearLayout>
-
         </LinearLayout>
+
     </ScrollView>
 </LinearLayout>

@@ -182,13 +182,15 @@ public class BleBlueToothService extends Service {
 
 
         /**
-         * 连接
+         * 连接方式二
          */
 
         public void connectLeDevice(Context context, BluetoothDevice device) {
             bluetoothGatt = device.connectGatt(context, false, mBluetoothGattCallback);
         }
-
+        /**
+         * 连接方式一
+         */
         public void connection(Context context, String address) {
             if (BluetoothAdapter.checkBluetoothAddress(address)) {
                 BluetoothDevice remoteDevice = bluetoothAdapter.getRemoteDevice(address);
@@ -214,11 +216,11 @@ public class BleBlueToothService extends Service {
          * 向蓝牙发送数据方式一
          */
         public void sendDataToBT() {
+            bluetoothGatt.setCharacteristicNotification(gattCharacteristic, true);//不写这一句,蓝牙消息会回传不回来
             if (gattCharacteristic != null && bluetoothGatt != null) {
                 //设置读数据的UUID
                 for (byte[] datum : data) {
                     Log.e("mcy_devidedPacket", "" + Arrays.toString(datum));
-                    bluetoothGatt.setCharacteristicNotification(gattCharacteristic, true);//不写这一句,蓝牙消息会回传不回来
                     gattCharacteristic.setValue(datum);
                     Message message = new Message();
                     message.obj = datum;
